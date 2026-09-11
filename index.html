@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUN OS</title>
+<style>
+:root{
+  --face:#c0c0c0; --hilite:#ffffff; --light:#dfdfdf; --shadow:#808080;
+  --dark:#000000; --navy:#000080; --navy2:#1084d0; --teal:#008080;
+}
+*{ box-sizing:border-box; }
+html,body{
+  height:100%; margin:0; overflow:hidden; background:#000; color:#000; font-size:12px;
+  font-family:"MS Sans Serif","Micro Sans Serif",Tahoma,Verdana,Geneva,sans-serif;
+  -webkit-font-smoothing:none; user-select:none; cursor:default;
+}
+.hidden{ display:none !important; }
+.screen{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
+
+.btn,.tb-btn,.win{
+  border:2px solid; border-color:var(--light) var(--dark) var(--dark) var(--light);
+  box-shadow:inset 1px 1px 0 var(--hilite), inset -1px -1px 0 var(--shadow);
+}
+.btn:active,.btn.pressed,.tb-btn:active,.task.active,
+.field,textarea,select,.br-view,.calc-disp,.statusbar div,#tray,.disp-screen{
+  border:2px solid; border-color:var(--shadow) var(--hilite) var(--hilite) var(--shadow);
+}
+.btn{ font:inherit; color:#000; background:var(--face); padding:3px 10px; min-width:70px; cursor:default; }
+.btn:active,.btn.pressed{ box-shadow:inset 1px 1px 0 var(--dark), inset -1px -1px 0 var(--light); padding:4px 9px 2px 11px; }
+.btn:focus{ outline:1px dotted #000; outline-offset:-5px; }
+.tb-btn:active{ box-shadow:none; }
+.field,textarea,select{
+  font-family:inherit; font-size:12px; background:#fff; padding:2px 3px; user-select:text;
+  box-shadow:inset 1px 1px 0 var(--dark), inset -1px -1px 0 var(--light);
+}
+.field:focus,textarea:focus{ outline:none; }
+
+#welcome{ background:#000; cursor:pointer; }
+.welcome-inner{ text-align:center; padding:20px; max-width:92vw; }
+.welcome-pic{
+  display:block; margin:0 auto; width:min(560px,88vw); height:auto; background:#000;
+  border:3px solid; border-color:var(--light) var(--shadow) var(--shadow) var(--light);
+}
+.welcome-text{
+  margin-top:20px; font-family:Georgia,"Times New Roman",serif; font-size:44px;
+  color:#e8f4ff; letter-spacing:3px; text-shadow:0 0 12px #4ea8ff, 0 0 30px #1a6fd4;
+}
+.welcome-hint{ margin-top:14px; color:#4a6f8f; font-size:11px; }
+
+#desktop{ position:fixed; inset:0; background:var(--teal) center/cover no-repeat; overflow:hidden; }
+#icons{ position:absolute; left:0; top:0; right:0; bottom:30px; }
+.dicon{ position:absolute; width:76px; padding:4px 2px 3px; text-align:center; color:#fff; touch-action:none; }
+.dicon svg{ display:block; margin:0 auto 3px; pointer-events:none; }
+.dicon span{ display:inline-block; padding:1px 3px; font-size:11px; line-height:1.2; text-shadow:1px 1px 0 #000; }
+.dicon.sel span{ background:var(--navy); outline:1px dotted #fff; outline-offset:-1px; }
+
+.win{ position:absolute; background:var(--face); padding:2px; display:flex; flex-direction:column;
+  min-width:200px; min-height:120px; }
+.win.maximized{ left:0 !important; top:0 !important; width:100% !important; height:calc(100% - 30px) !important; }
+.win-body{ flex:1; overflow:hidden; display:flex; flex-direction:column; margin-top:2px; }
+.titlebar{
+  display:flex; align-items:center; gap:4px; height:20px; flex:0 0 auto; touch-action:none;
+  padding:2px 2px 2px 3px; background:linear-gradient(90deg,#808080,#b5b5b5); color:#dcdcdc;
+}
+.titlebar.active{ background:linear-gradient(90deg,var(--navy),var(--navy2)); color:#fff; }
+.titlebar svg{ flex:0 0 auto; }
+.tb-title{ font-weight:bold; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tb-btns{ display:flex; gap:2px; }
+.tb-btn{
+  width:17px; height:15px; padding:0; min-width:0; font-size:10px; line-height:1; font-weight:bold;
+  display:flex; align-items:center; justify-content:center; background:var(--face); color:#000; cursor:default;
+}
+.tb-btn.close{ margin-left:2px; }
+.menubar{ display:flex; gap:2px; padding:1px 2px; flex:0 0 auto; }
+.menubar button{ font:inherit; background:none; border:1px solid transparent; padding:2px 7px; cursor:default; }
+.menubar button:hover{ background:var(--navy); color:#fff; }
+.statusbar{ flex:0 0 auto; display:flex; gap:3px; padding:2px; }
+.statusbar div{ padding:2px 5px; font-size:11px; }
+.statusbar .grow{ flex:1; }
+
+#taskbar{
+  position:absolute; left:0; right:0; bottom:0; height:30px; z-index:9000;
+  background:var(--face); display:flex; align-items:center; gap:3px; padding:2px 3px;
+  border-top:2px solid var(--hilite);
+}
+.start-btn{ min-width:0; padding:2px 7px 2px 4px; height:24px; display:flex; align-items:center; gap:4px; }
+.start-logo{
+  width:16px; height:16px; display:inline-block;
+  background:linear-gradient(135deg,#ff3b30 0 50%,transparent 0) no-repeat 0 0/7px 7px,
+    linear-gradient(135deg,#2fbf4f 0 50%,transparent 0) no-repeat 9px 0/7px 7px,
+    linear-gradient(135deg,#0a84ff 0 50%,transparent 0) no-repeat 0 9px/7px 7px,
+    linear-gradient(135deg,#ffcc00 0 50%,transparent 0) no-repeat 9px 9px/7px 7px;
+}
+.tb-sep{ width:2px; height:22px; border-left:1px solid var(--shadow); border-right:1px solid var(--hilite); }
+#tasks{ flex:1; display:flex; gap:3px; overflow:hidden; }
+.task{
+  min-width:0; flex:0 1 160px; height:24px; padding:2px 6px; display:flex; align-items:center; gap:4px;
+  font-size:11px; text-align:left; overflow:hidden; white-space:nowrap;
+}
+.task span{ overflow:hidden; text-overflow:ellipsis; }
+.task.active{ box-shadow:inset 1px 1px 0 var(--dark); font-weight:bold; }
+#tray{ height:24px; display:flex; align-items:center; padding:0 8px; font-size:11px; }
+
+#startmenu{
+  position:absolute; left:3px; bottom:32px; width:230px; z-index:9500; display:flex; padding:3px;
+  background:var(--face); border:2px solid;
+  border-color:var(--light) var(--dark) var(--dark) var(--light);
+  box-shadow:inset 1px 1px 0 var(--hilite), inset -1px -1px 0 var(--shadow);
+}
+.sm-side{ width:26px; flex:0 0 auto; position:relative; background:linear-gradient(180deg,var(--navy2),var(--navy)); }
+.sm-side span{
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%) rotate(-90deg);
+  transform-origin:bottom center; white-space:nowrap; color:#fff; font-weight:bold;
+  font-size:14px; text-shadow:1px 1px 0 #000;
+}
+.sm-items{ flex:1; }
+.sm-item{ display:flex; align-items:center; gap:8px; padding:5px 16px 5px 6px; font-size:13px; cursor:default; }
+.sm-item span{ white-space:nowrap; }
+.sm-item:hover{ background:var(--navy); color:#fff; }
+.sm-hr{ height:2px; margin:3px 2px; border-top:1px solid var(--shadow); border-bottom:1px solid var(--hilite); }
+
+.calc{ padding:5px; display:flex; flex-direction:column; height:100%; }
+.calc-disp{
+  background:#fff; text-align:right; padding:4px 6px; margin-bottom:6px; font-size:20px; overflow:hidden;
+  font-family:"Consolas","Courier New",monospace; box-shadow:inset 1px 1px 0 var(--dark);
+}
+.calc-grid{ flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:4px; }
+.calc-grid .btn{ min-width:0; padding:0; font-size:14px; font-weight:bold; }
+.calc-grid .op{ color:#000080; }
+.calc-grid .red{ color:#a00000; }
+.calc-grid .wide{ grid-column:span 2; }
+
+.br-bar{ display:flex; align-items:center; gap:4px; padding:3px; flex:0 0 auto; }
+.br-bar .btn{ min-width:0; padding:3px 8px; }
+.br-bar .field{ flex:1; min-width:60px; }
+.br-view{ flex:1; background:#fff; overflow:auto; margin:0 3px 3px; box-shadow:inset 1px 1px 0 var(--dark); }
+.br-view iframe{ width:100%; height:100%; border:0; display:block; background:#fff; }
+.page{ padding:14px 18px; font-size:13px; user-select:text; color:#000; }
+.page h1{ font-size:22px; margin:.2em 0 .4em; }
+.page h2{ font-size:16px; margin:1em 0 .3em; }
+.page a{ color:#0000ee; text-decoration:underline; cursor:default; }
+.page a:hover{ color:#ee0000; }
+.page hr{ border:0; border-top:2px groove #ccc; margin:12px 0; }
+.page ul{ margin:.3em 0 .3em 1.2em; padding:0; }
+.page li{ margin:2px 0; }
+.page table.layout{ width:100%; border-spacing:0; }
+.page .sidebar{ width:150px; vertical-align:top; background:#e8e8f8; border:2px ridge #9090c0; padding:8px; font-size:12px; }
+.page .content{ vertical-align:top; padding:0 0 0 14px; }
+.page .counter{
+  display:inline-block; background:#000; color:#0f0; padding:2px 6px; border:2px inset #555;
+  font-family:"Consolas","Courier New",monospace; letter-spacing:3px;
+}
+.page .construction{ background:#ff0; border:3px dashed #000; padding:6px 10px; display:inline-block; font-weight:bold; margin:8px 0; }
+.page blockquote{ border-left:4px solid var(--shadow); margin:8px 0; padding:4px 10px; background:#f4f4f4; font-style:italic; }
+.page .gb-entry{ border:1px solid #aaa; background:#f8f8ff; padding:6px 8px; margin:6px 0; }
+.page .gb-entry b{ color:#000080; }
+.page .gb-entry small{ color:#666; }
+.page input,.page textarea{ font-family:inherit; font-size:12px; }
+.page .note{ background:#ffffe0; border:1px solid #c0c000; padding:8px 10px; margin:10px 0; }
+.blink{ animation:blink 1.1s steps(2,start) infinite; }
+@keyframes blink{ to{ visibility:hidden; } }
+.rainbow{
+  background:linear-gradient(90deg,#f00,#f80,#fd0,#0c0,#08f,#60f);
+  -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:bold;
+}
+
+.np-area{
+  flex:1; margin:0 3px 3px; resize:none; padding:3px 4px; white-space:pre; overflow:auto;
+  font-family:"Consolas","Courier New",monospace; font-size:13px; line-height:1.35;
+}
+.np-area.wrap{ white-space:pre-wrap; }
+
+.term{
+  flex:1; background:#000; color:#c0c0c0; margin:0; padding:6px 8px; overflow-y:auto;
+  font-family:"Consolas","Courier New",monospace; font-size:14px; line-height:1.3;
+  white-space:pre-wrap; word-break:break-word; user-select:text; cursor:text;
+}
+.term .in-line{ display:flex; }
+.term .prompt{ white-space:pre; }
+.term input.term-in{
+  flex:1; background:transparent; border:0; outline:0; box-shadow:none; padding:0;
+  color:#fff; font-family:inherit; font-size:14px; caret-color:#c0c0c0;
+}
+.term .err{ color:#ff6b6b; } .term .ok{ color:#6bff6b; } .term .hi{ color:#fff; }
+.term .cy{ color:#6bd4ff; } .term .yl{ color:#ffd24a; }
+
+.disp{ padding:10px 12px; display:flex; flex-direction:column; gap:8px; height:100%; }
+.disp-prev{
+  align-self:center; padding:8px 8px 14px; background:var(--face); border:2px solid;
+  border-color:var(--light) var(--dark) var(--dark) var(--light);
+}
+.disp-screen{ width:176px; height:120px; background:var(--teal) center/cover no-repeat; }
+.disp-row{ display:flex; align-items:center; gap:6px; }
+.disp-row input[type=file]{ flex:1; min-width:0; font:inherit; font-size:11px; }
+.disp-note{ min-height:15px; color:#800000; }
+
+#shutdown{ background:#000; }
+.shutdown-text{ color:#ffb000; font-size:22px; text-align:center; font-family:"Consolas","Courier New",monospace; }
+.shutdown-sub{ margin-top:26px; }
+
+@media (max-width:640px){
+  .welcome-text{ font-size:30px; }
+}
+</style>
+</head>
+<body>
+
+<div id="welcome" class="screen">
+  <div class="welcome-inner">
+    <img class="welcome-pic" src="https://miro.medium.com/v2/1*oX2S3kaIrKJgcLQbjzYgpA@2x.jpeg" referrerpolicy="no-referrer" alt="Obi-Wan Kenobi: Hello there.">
+    <div class="welcome-text">Welcome</div>
+    <div class="welcome-hint">[ click anywhere to continue ]</div>
+  </div>
+</div>
+
+<div id="desktop" class="hidden">
+  <div id="icons"></div>
+  <div id="windows"></div>
+  <div id="startmenu" class="hidden">
+    <div class="sm-side"><span>HUN&nbsp;OS&nbsp;1.0</span></div>
+    <div class="sm-items" id="sm-items"></div>
+  </div>
+  <div id="taskbar">
+    <button id="start-btn" class="btn start-btn"><span class="start-logo"></span><b>Start</b></button>
+    <div class="tb-sep"></div>
+    <div id="tasks"></div>
+    <div id="tray"><span id="clock">--:--</span></div>
+  </div>
+</div>
+
+<div id="shutdown" class="screen hidden">
+  <div class="shutdown-text">
+    It is now safe to turn off your computer.
+    <div class="shutdown-sub"><button id="reboot" class="btn">Restart</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+var $  = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var USER = 'kenobi';
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+var LS = {
+  get: function (k, d) {
+    try { var v = localStorage.getItem('hunos.' + k); return v === null ? d : JSON.parse(v); }
+    catch (e) { return d; }
+  },
+  set: function (k, v) {
+    try { localStorage.setItem('hunos.' + k, JSON.stringify(v)); return true; }
+    catch (e) { return false; }
+  }
+};
+
+function svg(s, inner, smooth) {
+  return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 32 32"' +
+         (smooth ? '' : ' shape-rendering="crispEdges"') + '>' + inner + '</svg>';
+}
+
+var ICONS = {
+  calc: function (s) { return svg(s || 32,
+    '<rect x="5" y="2" width="22" height="28" fill="#c0c0c0" stroke="#000"/><rect x="7" y="4" width="18" height="6" fill="#a8d8b0" stroke="#404040"/><rect x="17" y="6" width="6" height="2" fill="#204020"/><g fill="#808080"><rect x="7" y="13" width="4" height="3"/><rect x="13" y="13" width="4" height="3"/><rect x="19" y="13" width="6" height="3"/><rect x="7" y="18" width="4" height="3"/><rect x="13" y="18" width="4" height="3"/><rect x="19" y="18" width="6" height="3"/><rect x="7" y="23" width="4" height="4"/><rect x="13" y="23" width="4" height="4"/></g><rect x="19" y="23" width="6" height="4" fill="#c04040"/>'); },
+
+  browser: function (s) { return svg(s || 32,
+    '<circle cx="16" cy="16" r="13" fill="#2f6fd0" stroke="#000"/><path d="M4 16h24M16 3c5 6 5 20 0 26M16 3c-5 6-5 20 0 26" fill="none" stroke="#bfe0ff"/><path d="M7 9c5 3 13 3 18 0M7 23c5-3 13-3 18 0" fill="none" stroke="#bfe0ff"/><path d="M9 10l3 4-2 4 5 2 1 5 4-4 4 1-1-5 3-3-4-2-1-4-5 2z" fill="#3fa04f" stroke="#1d5c28" stroke-width=".7"/>', 1); },
+
+  notepad: function (s) { return svg(s || 32,
+    '<rect x="6" y="3" width="20" height="26" fill="#fff" stroke="#000"/><rect x="6" y="3" width="20" height="4" fill="#000080"/><g stroke="#4060a0"><path d="M9 12h14M9 15h14M9 18h14M9 21h10"/></g><path d="M20 24l6 5V24z" fill="#c0c0c0" stroke="#000"/>'); },
+
+  term: function (s) { return svg(s || 32,
+    '<rect x="3" y="5" width="26" height="22" fill="#c0c0c0" stroke="#000"/><rect x="5" y="7" width="22" height="18" fill="#000"/><path d="M8 12l4 3-4 3" fill="none" stroke="#d0d0d0" stroke-width="2"/><rect x="14" y="18" width="7" height="2" fill="#d0d0d0"/>'); },
+
+  computer: function (s) { return svg(s || 32,
+    '<rect x="3" y="4" width="26" height="19" fill="#c8c4b4" stroke="#000"/><rect x="6" y="7" width="20" height="13" fill="#106090"/><rect x="7" y="8" width="18" height="5" fill="#1878b0"/><rect x="10" y="23" width="12" height="3" fill="#a0a090" stroke="#000"/><rect x="5" y="26" width="22" height="3" fill="#c8c4b4" stroke="#000"/>'); },
+
+  display: function (s) { return svg(s || 32,
+    '<rect x="3" y="4" width="26" height="19" fill="#c8c4b4" stroke="#000"/><rect x="6" y="7" width="20" height="13" fill="#2f6fd0"/><path d="M6 20l6-7 4 4 4-5 6 8z" fill="#3fa04f"/><circle cx="11" cy="10" r="2" fill="#ffd24a"/><rect x="10" y="23" width="12" height="3" fill="#a0a090" stroke="#000"/><rect x="5" y="26" width="22" height="3" fill="#c8c4b4" stroke="#000"/>'); },
+
+  help: function (s) { return svg(s || 32,
+    '<rect x="6" y="3" width="20" height="26" fill="#ffe08a" stroke="#000"/><text x="16" y="24" font-size="20" font-family="Georgia,serif" font-weight="bold" text-anchor="middle" fill="#000080">?</text>', 1); },
+
+  power: function (s) { return svg(s || 32,
+    '<circle cx="16" cy="18" r="9" fill="none" stroke="#c03020" stroke-width="3"/><rect x="14" y="4" width="4" height="13" fill="#c03020"/><rect x="9" y="8" width="14" height="5" fill="#c0c0c0"/>', 1); }
+};
+
+var zTop = 100, cascade = 0, open = {};
+
+function dragEl(el, handle, o) {
+  handle.addEventListener('pointerdown', function (e) {
+    if (o.ignore && e.target.closest(o.ignore)) return;
+    if (o.skip && o.skip()) return;
+    if (o.start) o.start();
+    var r = el.getBoundingClientRect();
+    var ox = e.clientX - r.left, oy = e.clientY - r.top, moved = false;
+    function move(ev) {
+      if (!moved && Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) < 4) return;
+      moved = true;
+      var minX = o.free ? 30 - r.width : 0;
+      el.style.left = Math.max(minX, Math.min(ev.clientX - ox, window.innerWidth - o.keepX)) + 'px';
+      el.style.top  = Math.max(0, Math.min(ev.clientY - oy, window.innerHeight - o.keepY)) + 'px';
+    }
+    function up() {
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      if (moved && o.end) o.end();
+    }
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+    e.preventDefault();
+  });
+}
+
+function blurAll() {
+  $$('.win').forEach(function (w) { w.classList.remove('focused'); $('.titlebar', w).classList.remove('active'); });
+  $$('.task').forEach(function (t) { t.classList.remove('active'); });
+}
+
+function focusWin(win) {
+  blurAll();
+  win.classList.add('focused');
+  $('.titlebar', win).classList.add('active');
+  win.style.zIndex = ++zTop;
+  Object.keys(open).forEach(function (id) { if (open[id].win === win) open[id].task.classList.add('active'); });
+}
+
+function minimize(win) { win.style.display = 'none'; win.dataset.min = '1'; blurAll(); }
+function restore(win) { win.style.display = ''; win.dataset.min = '0'; focusWin(win); }
+
+function closeWin(id) {
+  var o = open[id];
+  if (!o) return;
+  if (o.onclose) { try { o.onclose(); } catch (err) {} }
+  o.win.remove();
+  o.task.remove();
+  delete open[id];
+  var rest = Object.keys(open);
+  if (rest.length) focusWin(open[rest[rest.length - 1]].win);
+}
+
+function launch(id) {
+  var app = APPS[id];
+  if (!app) return;
+  closeStart();
+  if (open[id]) { restore(open[id].win); return; }
+
+  var w = Math.min(app.w, window.innerWidth - 20), h = Math.min(app.h, window.innerHeight - 50);
+  var x = 118 + cascade * 24, y = 24 + cascade * 22;
+  cascade = (cascade + 1) % 7;
+  if (x + w > window.innerWidth) x = Math.max(4, window.innerWidth - w - 8);
+  if (y + h > window.innerHeight - 30) y = Math.max(4, window.innerHeight - h - 38);
+
+  var win = document.createElement('div');
+  win.className = 'win';
+  win.style.cssText = 'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px';
+  win.innerHTML =
+    '<div class="titlebar active">' + app.icon(16) +
+      '<span class="tb-title">' + app.title + '</span><span class="tb-btns">' +
+      '<button class="tb-btn" data-a="min" title="Minimize">_</button>' +
+      '<button class="tb-btn" data-a="max" title="Maximize">&#9633;</button>' +
+      '<button class="tb-btn close" data-a="close" title="Close">&#10005;</button>' +
+      '</span></div><div class="win-body"></div>';
+  $('#windows').appendChild(win);
+
+  var task = document.createElement('button');
+  task.className = 'btn task';
+  task.innerHTML = app.icon(14) + '<span>' + app.title + '</span>';
+  task.addEventListener('click', function () {
+    if (win.dataset.min === '1' || !win.classList.contains('focused')) restore(win); else minimize(win);
+  });
+  $('#tasks').appendChild(task);
+
+  open[id] = { win: win, task: task };
+  win.addEventListener('pointerdown', function () { focusWin(win); });
+  $('.tb-btns', win).addEventListener('click', function (e) {
+    var b = e.target.closest('.tb-btn');
+    if (!b) return;
+    e.stopPropagation();
+    if (b.dataset.a === 'close') closeWin(id);
+    else if (b.dataset.a === 'min') minimize(win);
+    else win.classList.toggle('maximized');
+  });
+  $('.titlebar', win).addEventListener('dblclick', function (e) {
+    if (!e.target.closest('.tb-btn')) win.classList.toggle('maximized');
+  });
+
+  dragEl(win, $('.titlebar', win), {
+    ignore: '.tb-btn', free: 1, keepX: 40, keepY: 46,
+    skip: function () { return win.classList.contains('maximized'); },
+    start: function () { focusWin(win); }
+  });
+  focusWin(win);
+  app.init($('.win-body', win), win);
+}
+
+function applyWallpaper() {
+  var url = LS.get('wall', ''), fit = LS.get('wallfit', 'cover'), bg = url ? 'url(' + url + ')' : '';
+  var d = $('#desktop');
+  d.style.backgroundImage = bg;
+  d.style.backgroundRepeat = fit === 'tile' ? 'repeat' : 'no-repeat';
+  d.style.backgroundSize = fit === 'cover' ? 'cover' : 'auto';
+  $$('.disp-screen').forEach(function (p) { p.style.backgroundImage = bg; p.style.backgroundSize = 'cover'; });
+}
+
+function saveIcons() {
+  var pos = {};
+  $$('.dicon').forEach(function (d) { pos[d.dataset.id] = [parseInt(d.style.left, 10), parseInt(d.style.top, 10)]; });
+  LS.set('iconpos', pos);
+}
+
+function buildIcons() {
+  var box = $('#icons'), pos = LS.get('iconpos', {});
+  var items = [{ id: 'mypc', title: 'My Computer', icon: ICONS.computer, run: 'term' }]
+    .concat(['calc', 'browser', 'notepad', 'term', 'display'].map(function (id) {
+      return { id: id, title: APPS[id].short, icon: APPS[id].icon, run: id };
+    }));
+  box.innerHTML = '';
+  items.forEach(function (it, i) {
+    var d = document.createElement('div'), p = pos[it.id] || [8, 8 + i * 84];
+    d.className = 'dicon';
+    d.dataset.id = it.id;
+    d.style.left = Math.max(0, Math.min(p[0], window.innerWidth - 76)) + 'px';
+    d.style.top  = Math.max(0, Math.min(p[1], window.innerHeight - 98)) + 'px';
+    d.innerHTML = it.icon(32) + '<span>' + it.title + '</span>';
+    d.addEventListener('click', function () {
+      $$('.dicon').forEach(function (o) { o.classList.remove('sel'); });
+      d.classList.add('sel');
+    });
+    d.addEventListener('dblclick', function () { launch(it.run); });
+    dragEl(d, d, { keepX: 76, keepY: 98, end: saveIcons });
+    box.appendChild(d);
+  });
+}
+
+function smItem(box, icon, label, fn) {
+  var d = document.createElement('div');
+  d.className = 'sm-item';
+  d.innerHTML = icon(22) + '<span>' + label + '</span>';
+  d.addEventListener('click', fn);
+  box.appendChild(d);
+}
+
+function buildStartMenu() {
+  var box = $('#sm-items');
+  box.innerHTML = '';
+  ['calc', 'browser', 'notepad', 'term'].forEach(function (id) {
+    smItem(box, APPS[id].icon, APPS[id].menu || APPS[id].title, function () { launch(id); });
+  });
+  var hr = document.createElement('div');
+  hr.className = 'sm-hr';
+  box.appendChild(hr);
+  smItem(box, ICONS.display, 'Display...', function () { launch('display'); });
+  smItem(box, ICONS.help, 'About', function () { closeStart(); launch('about'); });
+  smItem(box, ICONS.power, 'Shut Down...', function () {
+    closeStart();
+    $('#desktop').classList.add('hidden');
+    $('#shutdown').classList.remove('hidden');
+  });
+}
+
+function closeStart() {
+  $('#startmenu').classList.add('hidden');
+  $('#start-btn').classList.remove('pressed');
+}
+
+function tickClock() {
+  var d = new Date();
+  $('#clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function startDesktop() {
+  $('#desktop').classList.remove('hidden');
+  buildIcons();
+  buildStartMenu();
+  applyWallpaper();
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  $('#start-btn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var m = $('#startmenu');
+    m.classList.toggle('hidden');
+    $('#start-btn').classList.toggle('pressed', !m.classList.contains('hidden'));
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (!e.target.closest('#startmenu') && !e.target.closest('#start-btn')) closeStart();
+  });
+  $('#icons').addEventListener('pointerdown', function (e) {
+    if (!e.target.closest('.dicon')) $$('.dicon').forEach(function (d) { d.classList.remove('sel'); });
+  });
+  $('#icons').addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    if (!e.target.closest('.dicon')) launch('display');
+  });
+  $('#reboot').addEventListener('click', function () { location.reload(); });
+  launch('term');
+}
+
+function initCalc(body, win) {
+  var KEYS = [
+    ['C', 'clr', 'red'], ['CE', 'ce', 'red'], ['&#8592;', 'back', 'red'], ['/', 'op', 'op'],
+    ['7', 'd'], ['8', 'd'], ['9', 'd'], ['*', 'op', 'op'],
+    ['4', 'd'], ['5', 'd'], ['6', 'd'], ['-', 'op', 'op'],
+    ['1', 'd'], ['2', 'd'], ['3', 'd'], ['+', 'op', 'op'],
+    ['0', 'd', 'wide'], ['.', 'dot'], ['=', 'eq', 'op']
+  ];
+  body.innerHTML = '<div class="calc"><div class="calc-disp">0</div><div class="calc-grid"></div></div>';
+  var disp = $('.calc-disp', body), grid = $('.calc-grid', body);
+  var cur = '0', acc = null, op = null, fresh = true, err = false;
+
+  function show() { disp.textContent = err ? err : cur; }
+  function calc(a, b, o) {
+    if (o === '+') return a + b;
+    if (o === '-') return a - b;
+    if (o === '*') return a * b;
+    if (b === 0) { err = 'Cannot divide by zero'; return 0; }
+    return a / b;
+  }
+  function tidy(n) {
+    if (!isFinite(n)) { err = 'Error'; return '0'; }
+    var s = parseFloat(n.toPrecision(12)).toString();
+    return s.length > 16 ? n.toExponential(8) : s;
+  }
+  function press(label, kind) {
+    if (err && kind !== 'clr') { err = false; cur = '0'; acc = null; op = null; fresh = true; }
+    if (kind === 'd') {
+      if (fresh || cur === '0') { cur = label; fresh = false; }
+      else if (cur.replace(/[-.]/g, '').length < 14) cur += label;
+    } else if (kind === 'dot') {
+      if (fresh) { cur = '0.'; fresh = false; } else if (cur.indexOf('.') < 0) cur += '.';
+    } else if (kind === 'back') {
+      if (!fresh) { cur = cur.slice(0, -1); if (cur === '' || cur === '-') cur = '0'; }
+    } else if (kind === 'ce') {
+      cur = '0'; fresh = true;
+    } else if (kind === 'clr') {
+      cur = '0'; acc = null; op = null; fresh = true; err = false;
+    } else if (kind === 'op') {
+      var v = parseFloat(cur);
+      if (op !== null && !fresh) { v = calc(acc, v, op); cur = tidy(v); }
+      acc = err ? 0 : parseFloat(cur);
+      op = label; fresh = true;
+    } else if (kind === 'eq') {
+      if (op !== null) { cur = tidy(calc(acc, parseFloat(cur), op)); op = null; acc = null; }
+      fresh = true;
+    }
+    show();
+  }
+
+  KEYS.forEach(function (k) {
+    var b = document.createElement('button');
+    b.className = 'btn ' + (k[2] || '');
+    b.innerHTML = k[0];
+    b.tabIndex = -1;
+    b.addEventListener('click', function () { press(k[0] === '&#8592;' ? '<' : k[0], k[1]); });
+    grid.appendChild(b);
+  });
+
+  win.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k >= '0' && k <= '9') press(k, 'd');
+    else if (k === '.' || k === ',') press('.', 'dot');
+    else if (k.length === 1 && '+-*/'.indexOf(k) >= 0) press(k, 'op');
+    else if (k === 'Enter' || k === '=') press('=', 'eq');
+    else if (k === 'Backspace') press('<', 'back');
+    else if (k === 'Escape') press('C', 'clr');
+    else if (k === 'Delete') press('CE', 'ce');
+    else return;
+    e.preventDefault();
+  });
+  win.tabIndex = -1;
+  setTimeout(function () { win.focus(); }, 10);
+}
+
+function initDisplay(body) {
+  body.innerHTML =
+    '<div class="disp">' +
+      '<div class="disp-prev"><div class="disp-screen"></div></div>' +
+      '<div class="disp-row"><span>Picture:</span><input type="file" accept="image/*" class="disp-file"></div>' +
+      '<div class="disp-row"><span>Position:</span><select class="disp-fit">' +
+        '<option value="cover">Stretch</option><option value="center">Center</option><option value="tile">Tile</option>' +
+      '</select><button class="btn disp-clear">Remove</button></div>' +
+      '<div class="disp-note"></div>' +
+    '</div>';
+  var file = $('.disp-file', body), fit = $('.disp-fit', body), note = $('.disp-note', body);
+  fit.value = LS.get('wallfit', 'cover');
+  applyWallpaper();
+
+  function save(url) {
+    if (!LS.set('wall', url)) { note.textContent = 'Picture set, but too large to remember after a reload.'; }
+    applyWallpaper();
+  }
+  file.addEventListener('change', function () {
+    var f = file.files[0];
+    if (!f) return;
+    note.textContent = 'Reading ' + f.name + '...';
+    var fr = new FileReader();
+    fr.onerror = function () { note.textContent = 'Could not read that file.'; };
+    fr.onload = function () {
+      var img = new Image();
+      img.onerror = function () { note.textContent = 'That file is not an image.'; };
+      img.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * k);
+        c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        note.textContent = '';
+        save(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  });
+  fit.addEventListener('change', function () { LS.set('wallfit', fit.value); applyWallpaper(); });
+  $('.disp-clear', body).addEventListener('click', function () {
+    LS.set('wall', '');
+    file.value = '';
+    note.textContent = '';
+    applyWallpaper();
+  });
+}
+
+var HOME = 'hun://start';
+
+function initBrowser(body) {
+  body.innerHTML =
+    '<div class="br-bar">' +
+      '<button class="btn" data-n="back" title="Back">&#9664;</button>' +
+      '<button class="btn" data-n="fwd" title="Forward">&#9654;</button>' +
+      '<button class="btn" data-n="stop" title="Reload">&#8635;</button>' +
+      '<button class="btn" data-n="home" title="Home">&#8962;</button>' +
+      '<input class="field url" value="' + HOME + '">' +
+      '<button class="btn" data-n="go">Go</button>' +
+    '</div><div class="br-view"></div>' +
+    '<div class="statusbar"><div class="grow st">Done</div><div>HunNet zone</div></div>';
+
+  var url = $('.url', body), view = $('.br-view', body), st = $('.st', body), hist = [], hi = -1;
+
+  function render(u, push) {
+    u = u.trim();
+    if (!u) return;
+    if (!/^(hun|https?):\/\//i.test(u)) u = /\./.test(u.split('/')[0]) ? 'http://' + u : 'hun://' + u;
+    url.value = u;
+
+    if (/^hun:\/\//i.test(u)) {
+      var key = u.replace(/^hun:\/\//i, '').replace(/\/$/, '').toLowerCase() || 'start';
+      var site = SITES[key];
+      view.innerHTML = site
+        ? '<div class="page">' + (typeof site.html === 'function' ? site.html() : site.html) + '</div>'
+        : '<div class="page"><h1>404 &mdash; Page not found</h1><p>The address <b>' + escapeHtml(u) +
+          '</b> is not on HunNet.</p><p><a data-go="hun://start">Back to the home page</a></p></div>';
+      if (site && site.after) site.after(view, render);
+      st.textContent = site ? (site.title || 'Done') : 'Page not found';
+    } else {
+      view.innerHTML = '<iframe src="' + escapeHtml(u) + '" sandbox="allow-scripts allow-forms allow-popups"></iframe>';
+      st.textContent = 'Loading external page...';
+      $('iframe', view).addEventListener('load', function () { st.textContent = 'Done'; });
+    }
+    view.scrollTop = 0;
+    if (push !== false) { hist = hist.slice(0, hi + 1); hist.push(u); hi = hist.length - 1; }
+  }
+
+  view.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-go]');
+    if (a) { e.preventDefault(); render(a.getAttribute('data-go')); }
+  });
+  $('.br-bar', body).addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-n]');
+    if (!b) return;
+    var n = b.dataset.n;
+    if (n === 'back' && hi > 0) render(hist[--hi], false);
+    else if (n === 'fwd' && hi < hist.length - 1) render(hist[++hi], false);
+    else if (n === 'stop') render(url.value, false);
+    else if (n === 'home') render(HOME);
+    else if (n === 'go') render(url.value);
+  });
+  url.addEventListener('keydown', function (e) { if (e.key === 'Enter') render(url.value); });
+  render(HOME);
+}
+
+var NAVBOX =
+  '<td class="sidebar"><b>HunNet</b><hr>' +
+  '<a data-go="hun://start">Home</a><br><a data-go="hun://catalog">Catalog</a><br>' +
+  '<a data-go="hun://jedi">Jedi Archive</a><br><a data-go="hun://guestbook">Guestbook</a><br>' +
+  '<a data-go="hun://help">Help</a><hr><div class="construction">UNDER CONSTRUCTION</div></td>';
+
+function page(inner) {
+  return '<table class="layout"><tr>' + NAVBOX + '<td class="content">' + inner + '</td></tr></table>';
+}
+
+var SITES = {};
+
+SITES.start = { title: 'HunNet home page', html:
+  '<marquee behavior="alternate" scrollamount="4"><span class="rainbow">' +
+  '*** WELCOME TO HUNNET! *** Fast even on a 28.8k modem! ***</span></marquee>' +
+  page('<h1>HunNet &mdash; your gateway to the web</h1>' +
+    '<p>This is the home page of the browser built into HUN OS. The network currently holds' +
+    ' <b>four</b> pages, and it keeps growing.</p>' +
+    '<h2>Recommended pages</h2><ul>' +
+    '<li><a data-go="hun://catalog">HunNet Catalog</a> &ndash; every page in one place</li>' +
+    '<li><a data-go="hun://jedi">Jedi Archive</a> &ndash; quotes and wisdom</li>' +
+    '<li><a data-go="hun://guestbook">Guestbook</a> &ndash; sign your name!</li>' +
+    '<li><a data-go="hun://help">Help</a> &ndash; how to use the browser</li></ul>' +
+    '<div class="note"><b>Tip:</b> you can type a real web address in the address bar too,' +
+    ' for example <i>example.com</i>.</div><hr>' +
+    '<p>Visitor count: <span class="counter">0042137</span><br>' +
+    '<small>Best viewed with <b>HunNet Navigator 3.0</b> at 800&times;600.</small></p>') };
+
+SITES.catalog = { title: 'HunNet Catalog', html:
+  page('<h1>HunNet Catalog</h1>' +
+    '<p>A hand-sorted collection of pages. Last updated: 12 November 1996.</p>' +
+    '<h2>Computing</h2><ul><li><a data-go="hun://help">Navigator help</a> (12 hits)</li>' +
+    '<li><a data-go="hun://start">HunNet home page</a> (1 hit)</li></ul>' +
+    '<h2>Film and entertainment</h2><ul>' +
+    '<li><a data-go="hun://jedi">Jedi Archive</a> (4 hits) <span class="blink">NEW!</span></li></ul>' +
+    '<h2>Community</h2><ul><li><a data-go="hun://guestbook">Guestbook</a> (entries)</li></ul>' +
+    '<hr><p><small>Listings are added by hand, on request, by post.</small></p>') };
+
+SITES.jedi = { title: 'Jedi Archive', html:
+  page('<h1>Jedi Archive</h1><p>A selection from the notes of Master Obi-Wan Kenobi.</p>' +
+    '<blockquote>Hello there.</blockquote>' +
+    '<blockquote>The Force is what gives a Jedi his power. It surrounds us and penetrates us;' +
+    ' it binds the galaxy together.</blockquote>' +
+    '<blockquote>These aren&rsquo;t the droids you&rsquo;re looking for.</blockquote>' +
+    '<blockquote>Many of the truths we cling to depend greatly on our own point of view.</blockquote>' +
+    '<hr><p><small>The archive is incomplete. If an entry does not appear in the archive,' +
+    ' it can only mean someone erased it.</small></p>') };
+
+SITES.help = { title: 'Help', html:
+  page('<h1>Navigator help</h1><h2>Addresses</h2>' +
+    '<p>Internal pages start with the <b>hun://</b> prefix, for example <i>hun://jedi</i>.' +
+    ' For a real site type an <b>http://</b> or <b>https://</b> address, or just the domain' +
+    ' (such as <i>example.com</i>).</p><h2>Buttons</h2>' +
+    '<ul><li><b>&#9664; &#9654;</b> &ndash; back and forward through history</li>' +
+    '<li><b>&#8635;</b> &ndash; reload the page</li>' +
+    '<li><b>&#8962;</b> &ndash; return to the home page</li></ul>') };
+
+function gbEntries() {
+  return LS.get('guestbook', [
+    { n: 'Obi-Wan', t: 'Hello there. This network turned out rather well!', d: '1996.11.03 14:21' },
+    { n: 'Dave', t: 'My modem is only a 33.6 and it still flies!', d: '1996.11.05 19:47' }
+  ]);
+}
+
+SITES.guestbook = {
+  title: 'Guestbook',
+  html: function () {
+    var list = gbEntries().map(function (e) {
+      return '<div class="gb-entry"><b>' + escapeHtml(e.n) + '</b> <small>' + escapeHtml(e.d) +
+             '</small><br>' + escapeHtml(e.t) + '</div>';
+    }).join('') || '<p><i>No entries yet.</i></p>';
+    return page('<h1>Guestbook</h1><p>Sign your name so posterity knows you were here.</p>' +
+      '<div style="border:2px ridge #9090c0;padding:10px;background:#f0f0ff">' +
+      '<div>Name:<br><input class="gb-name" size="24" maxlength="24"></div>' +
+      '<div style="margin-top:6px">Message:<br>' +
+      '<textarea class="gb-text" rows="3" cols="40" maxlength="200"></textarea></div>' +
+      '<div style="margin-top:6px"><button class="btn gb-send">Submit</button> ' +
+      '<button class="btn gb-clear">Clear guestbook</button></div></div>' +
+      '<h2>Entries (' + gbEntries().length + ')</h2>' + list);
+  },
+  after: function (view, render) {
+    var name = $('.gb-name', view), text = $('.gb-text', view);
+    $('.gb-send', view).addEventListener('click', function () {
+      var t = (text.value || '').trim();
+      if (!t) { text.focus(); return; }
+      var d = new Date(), arr = gbEntries();
+      arr.unshift({ n: (name.value || 'Anonymous').trim(), t: t,
+        d: d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()) + ' ' +
+           pad(d.getHours()) + ':' + pad(d.getMinutes()) });
+      LS.set('guestbook', arr.slice(0, 50));
+      render('hun://guestbook', false);
+    });
+    $('.gb-clear', view).addEventListener('click', function () {
+      LS.set('guestbook', []);
+      render('hun://guestbook', false);
+    });
+  }
+};
+
+function initNotepad(body) {
+  body.innerHTML =
+    '<div class="menubar"><button data-m="new">New</button><button data-m="open">Open</button>' +
+    '<button data-m="save">Save</button><button data-m="time">Time/Date</button>' +
+    '<button data-m="wrap">Word Wrap</button></div>' +
+    '<textarea class="np-area wrap" spellcheck="false"></textarea>' +
+    '<div class="statusbar"><div class="grow np-st">Ready</div><div class="np-cnt"></div></div>';
+
+  var ta = $('.np-area', body), st = $('.np-st', body), cnt = $('.np-cnt', body);
+  ta.value = LS.get('notes',
+    'HUN OS - Notepad\r\n================\r\n\r\n' +
+    'This text is kept in your browser, so it survives a reload.\r\n' +
+    'Save writes it down, Open loads the last saved version back.\r\n');
+
+  function count() { cnt.textContent = ta.value.length + ' characters, ' + ta.value.split('\n').length + ' lines'; }
+  count();
+  ta.addEventListener('input', function () { st.textContent = 'Modified'; count(); });
+
+  $('.menubar', body).addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-m]');
+    if (!b) return;
+    var m = b.dataset.m;
+    if (m === 'new') { ta.value = ''; st.textContent = 'New document'; count(); ta.focus(); }
+    else if (m === 'save') { LS.set('notes', ta.value); st.textContent = 'Saved'; }
+    else if (m === 'open') { ta.value = LS.get('notes', ''); st.textContent = 'Opened'; count(); }
+    else if (m === 'wrap') {
+      ta.classList.toggle('wrap');
+      st.textContent = 'Word wrap: ' + (ta.classList.contains('wrap') ? 'on' : 'off');
+    } else {
+      var d = new Date(), p = ta.selectionStart;
+      var s = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' +
+              d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate());
+      ta.value = ta.value.slice(0, p) + s + ta.value.slice(ta.selectionEnd);
+      ta.selectionStart = ta.selectionEnd = p + s.length;
+      st.textContent = 'Modified'; count(); ta.focus();
+    }
+  });
+  if (open.notepad) open.notepad.onclose = function () { LS.set('notes', ta.value); };
+  setTimeout(function () { ta.focus(); }, 10);
+}
+
+var TFS = {
+  'README.TXT':
+    'HUN OS 1.0 - read me first\n--------------------------\n' +
+    'Thank you for choosing HUN OS.\n' +
+    'The system ships with a calculator, a browser, a notepad,\n' +
+    'display settings and this command prompt.\n' +
+    'Type HELP to see the list of commands.',
+  'AUTOEXEC.BAT':
+    '@ECHO OFF\nPROMPT $P$G\nPATH C:\u005CHUNOS;C:\u005CDOS\n' +
+    'SET FORCE=PERCEPTIBLE\nLH C:\u005CHUNOS\u005CHUNMOUSE.SYS\nECHO Hello there.',
+  'JEDI.TXT': 'Hello there.\nMay the Force be with you, always.',
+  'HUNOS.INI':
+    '[system]\nlanguage=en\nresolution=800x600\ncolors=256\n\n[user]\nname=kenobi\nrank=jedi master'
+};
+
+var FORCE_LINES = [
+  'The Force surrounds us and penetrates us.',
+  'These are not the droids you are looking for.',
+  'You have great power, but you are not wise.',
+  'Many of the truths we cling to depend on our point of view.',
+  'Who I am is more than what you see.',
+  'Use the Force, Luke.'
+];
+
+function initTerm(body) {
+  body.innerHTML = '<div class="term"><div class="in-line"><span class="prompt">C:\u005C&gt;</span>' +
+    '<input class="term-in" spellcheck="false" autocomplete="off"></div></div>';
+  var term = $('.term', body), line = $('.in-line', term), input = $('.term-in', term);
+  var hist = [], hpos = 0;
+
+  function write(html, cls) {
+    var d = document.createElement('div');
+    if (cls) d.className = cls;
+    d.innerHTML = html;
+    term.insertBefore(d, line);
+    term.scrollTop = term.scrollHeight;
+  }
+  function focus() { input.focus(); term.scrollTop = term.scrollHeight; }
+  function clear() { $$('.term > div', body).forEach(function (d) { if (d !== line) d.remove(); }); }
+
+  term.addEventListener('click', function () { if (!window.getSelection().toString()) focus(); });
+  write('<span class="hi">MS-HUN(R) Command Prompt, version 1.0</span>');
+  write('(C) 1996 Hunyadi Microsystems Ltd.\n');
+  write('Type <span class="yl">HELP</span> to see what is available.\n');
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var raw = input.value;
+      input.value = '';
+      write('<span class="prompt">C:\u005C&gt;</span>' + escapeHtml(raw));
+      if (raw.trim()) { hist.push(raw); hpos = hist.length; }
+      exec(raw, write, focus);
+    } else if (e.key === 'ArrowUp') {
+      if (hpos > 0) input.value = hist[--hpos];
+      e.preventDefault();
+    } else if (e.key === 'ArrowDown') {
+      if (hpos < hist.length - 1) input.value = hist[++hpos];
+      else { hpos = hist.length; input.value = ''; }
+      e.preventDefault();
+    } else if (e.key === 'l' && e.ctrlKey) {
+      clear();
+      e.preventDefault();
+    }
+  });
+  exec.clear = clear;
+  setTimeout(focus, 20);
+}
+
+function exec(raw, write, focus) {
+  var parts = raw.trim().split(/\s+/), cmd = (parts.shift() || '').toUpperCase(), arg = parts.join(' ');
+  var d = new Date();
+  if (!cmd) return;
+
+  switch (cmd) {
+  case 'HELP': case '?':
+    write('<span class="hi">Available commands:</span>\n' +
+      '  <span class="yl">HELP</span>      this list\n' +
+      '  <span class="yl">DIR</span>       contents of drive C:\n' +
+      '  <span class="yl">TYPE</span> f    print a file (e.g. TYPE JEDI.TXT)\n' +
+      '  <span class="yl">MATH</span> e    evaluate an expression (e.g. MATH 2+3*4)\n' +
+      '  <span class="yl">ECHO</span> s    print some text\n' +
+      '  <span class="yl">DATE</span>      current date     <span class="yl">TIME</span>  current time\n' +
+      '  <span class="yl">VER</span>       system version   <span class="yl">CLS</span>   clear the screen\n' +
+      '  <span class="yl">WHOAMI</span>    who am I?        <span class="yl">FORCE</span> jedi wisdom\n' +
+      '  <span class="yl">NEOFETCH</span>  system summary\n' +
+      '  <span class="yl">CALC</span> / <span class="yl">NOTEPAD</span> / <span class="yl">NET</span> / ' +
+      '<span class="yl">DISPLAY</span>   start a program\n' +
+      '  <span class="yl">EXIT</span>      close this window\n');
+    break;
+
+  case 'DIR':
+    var names = Object.keys(TFS), total = 0;
+    write(' Volume in drive C: is HUN-DISK\n Volume Serial Number is 1977-0525\n\n Directory of C:\u005C\n');
+    write(names.map(function (n) {
+      var sz = TFS[n].length;
+      total += sz;
+      return ' ' + (n.split('.')[0] + '        ').slice(0, 9) + ((n.split('.')[1] || '') + '   ').slice(0, 3) +
+             ('        ' + sz).slice(-8) + '  1996-11-12  09:14';
+    }).join('\n'));
+    write('\n' + ('    ' + names.length).slice(-6) + ' file(s)' + ('          ' + total).slice(-10) +
+          ' bytes\n         0 dir(s)   382,976,000 bytes free\n');
+    break;
+
+  case 'TYPE':
+    if (!arg) write('The syntax of the command is incorrect.', 'err');
+    else if (TFS[arg.toUpperCase()]) write(escapeHtml(TFS[arg.toUpperCase()]) + '\n');
+    else write('File not found: ' + escapeHtml(arg), 'err');
+    break;
+
+  case 'MATH':
+    if (!arg.trim() || !/^[-+*/().\d\s]+$/.test(arg)) {
+      write('Only digits and the + - * / ( ) signs are allowed.', 'err');
+    } else {
+      try {
+        var r = Function('return (' + arg + ')')();
+        write(isFinite(r) ? '= <span class="ok">' + r + '</span>' : 'Invalid result.');
+      } catch (e) { write('Bad expression.', 'err'); }
+    }
+    break;
+
+  case 'NEOFETCH':
+    write('<span class="cy">   _  _ _   _ _  _    ___  ___ </span>    <span class="hi">' +
+      escapeHtml(USER) + '@hun-pc</span>\n' +
+      '<span class="cy">  | || | | | | \u005C| |  / _ \u005C/ __|</span>    ---------------\n' +
+      '<span class="cy">  | __ | |_| | .` | | (_) \u005C__ \u005C</span>    OS      : HUN OS 1.0\n' +
+      '<span class="cy">  |_||_|\u005C___/|_|\u005C_|  \u005C___/|___/</span>    CPU     : Pentium 133 MHz\n' +
+      '                                  RAM     : 16 MB\n' +
+      '                                  Display : 800x600, 256 colors\n' +
+      '                                  Force   : perceptible\n');
+    break;
+
+  case 'CLS': if (exec.clear) exec.clear(); break;
+  case 'ECHO': write(arg ? escapeHtml(arg) : 'ECHO is on.'); break;
+  case 'DATE': write('The current date is: ' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())); break;
+  case 'TIME': write('The current time is: ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())); break;
+  case 'VER': write('<span class="hi">HUN OS 1.0</span>  (MS-HUN Command Prompt 1.0)'); break;
+  case 'WHOAMI': write('HUN-PC\u005C' + escapeHtml(USER) + '  -  jedi master, administrator'); break;
+  case 'FORCE': write('<span class="cy">' + FORCE_LINES[Math.floor(Math.random() * FORCE_LINES.length)] + '</span>'); break;
+  case 'HELLO': write('<span class="hi">General Kenobi!</span>'); break;
+  case 'CALC': launch('calc'); write('Calculator started.'); break;
+  case 'NOTEPAD': launch('notepad'); write('Notepad started.'); break;
+  case 'NET': launch('browser'); write('HunNet Navigator started.'); break;
+  case 'DISPLAY': launch('display'); write('Display settings opened.'); break;
+  case 'EXIT': closeWin('term'); break;
+  default: write(escapeHtml(cmd) + ' is not recognized as a command. Type HELP', 'err');
+  }
+  if (focus) focus();
+}
+
+function initAbout(body) {
+  body.innerHTML =
+    '<div style="padding:14px 16px;display:flex;flex-direction:column;height:100%">' +
+      '<div style="display:flex;gap:12px;align-items:flex-start">' + ICONS.computer(48) +
+      '<div><div style="font-size:20px;font-weight:bold">HUN OS</div>' +
+      '<div>Version 1.0 &nbsp;&middot;&nbsp; 1996</div>' +
+      '<div style="margin-top:4px">Hunyadi Microsystems Ltd.</div></div></div>' +
+      '<div style="height:2px;margin:12px 0;border-top:1px solid #808080;border-bottom:1px solid #fff"></div>' +
+      '<div>User: <b>' + escapeHtml(USER) + '</b></div>' +
+      '<div>Physical memory: 16,384 KB</div>' +
+      '<div>System resources: 87% free</div>' +
+      '<div style="margin-top:10px;font-style:italic">Hello there.</div>' +
+      '<div style="margin-top:auto;text-align:right"><button class="btn ab-ok">OK</button></div></div>';
+  $('.ab-ok', body).addEventListener('click', function () { closeWin('about'); });
+}
+
+var APPS = {
+  calc:    { title: 'Calculator', short: 'Calculator', icon: ICONS.calc, w: 236, h: 300, init: initCalc },
+  browser: { title: 'HunNet Navigator', short: 'HunNet', icon: ICONS.browser, w: 700, h: 470, init: initBrowser },
+  notepad: { title: 'Notepad - notes.txt', short: 'Notepad', menu: 'Notepad', icon: ICONS.notepad,
+             w: 520, h: 390, init: initNotepad },
+  term:    { title: 'MS-HUN Command Prompt', short: 'Prompt', icon: ICONS.term, w: 600, h: 380, init: initTerm },
+  display: { title: 'Display Properties', short: 'Display', icon: ICONS.display, w: 330, h: 330, init: initDisplay },
+  about:   { title: 'About: HUN OS', short: 'About', icon: ICONS.help, w: 380, h: 300, init: initAbout }
+};
+
+window.addEventListener('resize', function () {
+  $$('.win').forEach(function (w) {
+    var maxX = window.innerWidth - 60, maxY = window.innerHeight - 46;
+    if (parseInt(w.style.left, 10) > maxX) w.style.left = Math.max(0, maxX) + 'px';
+    if (parseInt(w.style.top, 10) > maxY) w.style.top = Math.max(0, maxY) + 'px';
+  });
+});
+
+var welcome = $('#welcome'), entered = false;
+function enterDesktop() {
+  if (entered) return;
+  entered = true;
+  document.removeEventListener('keydown', enterDesktop);
+  welcome.remove();
+  startDesktop();
+}
+welcome.addEventListener('click', enterDesktop);
+document.addEventListener('keydown', enterDesktop);
+
+})();
+</script>   
+</body>"vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+</html>
+
