@@ -7,9 +7,7 @@ script together.
 
 ## Running it
 
-Double-click `index.html`. Nothing else is needed — the file is self-contained
-and loads no local assets. (A local server also works if you prefer one:
-`python -m http.server 8080`, then <http://localhost:8080>.)
+Double-click `index.html`. Nothing else is needed
 
 ## Starting up
 
